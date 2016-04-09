@@ -2,7 +2,6 @@ package com.squirrel.looploader;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -11,30 +10,32 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.squirrel.looploader.dummy.DummyContent;
+import com.squirrel.looploader.helpers.IntentHelper;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
 
-    public static final int GET_GALLERY_VIDEO = 1;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        ButterKnife.bind(this);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setType("video/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Video"), GET_GALLERY_VIDEO);
-            }
-        });
+        setSupportActionBar(mToolbar);
 
+    }
+
+   //Open the video gallery by click on FAB
+    @OnClick(R.id.fab)
+    public void onClick(View view) {
+        startActivityForResult(Intent.createChooser(IntentHelper.getVideoIntent(), "Select Video"),
+                IntentHelper.GET_GALLERY_VIDEO);
     }
 
     @Override
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            if (requestCode == GET_GALLERY_VIDEO) {
+            if (requestCode == IntentHelper.GET_GALLERY_VIDEO) {
                     String path = data.getData().toString();
                 Toast.makeText(getApplicationContext(), "Path: " + path, Toast.LENGTH_LONG).show();
             }
