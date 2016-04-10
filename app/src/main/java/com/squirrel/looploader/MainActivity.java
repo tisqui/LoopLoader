@@ -1,16 +1,21 @@
 package com.squirrel.looploader;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.squirrel.looploader.dummy.DummyContent;
+import com.squirrel.looploader.helpers.DocsHelper;
 import com.squirrel.looploader.helpers.IntentHelper;
+import com.squirrel.looploader.services.VideoUploadService;
+
+import java.io.File;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -62,9 +67,21 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
+            if (data == null) return;
             if (requestCode == IntentHelper.GET_GALLERY_VIDEO) {
-                    String path = data.getData().toString();
-                Toast.makeText(getApplicationContext(), "Path: " + path, Toast.LENGTH_LONG).show();
+
+                Uri uri = data.getData();
+
+                String real_path = DocsHelper.getMediaPath(uri, this);
+                Log.d("TAG", "real path " + real_path);
+
+                File file = new File(real_path);
+                boolean exists = file.exists();
+
+                Log.d("TAG", "file exists? " + exists);
+
+                VideoUploadService videoUploadService = new VideoUploadService();
+                videoUploadService.uploadFile(real_path);
             }
         }
     }
@@ -73,4 +90,5 @@ public class MainActivity extends AppCompatActivity implements
     public void onListFragmentInteraction(DummyContent.DummyItem item) {
 
     }
+
 }
