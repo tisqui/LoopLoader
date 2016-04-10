@@ -5,12 +5,10 @@ import android.util.Log;
 import com.squirrel.looploader.model.LoopAPI;
 
 import java.io.File;
-import java.io.IOException;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,34 +32,55 @@ public class VideoUploadService {
         if(file.exists()){
 
         // create RequestBody instance from file
-        RequestBody requestFile =
-                RequestBody.create(MediaType.parse("multipart/form-data"), file);
+//        RequestBody requestFile =
+//                RequestBody.create(MediaType.parse("multipart/form-data"), file);
+////
+//            MultipartBody.Part body =
+//                    MultipartBody.Part.createFormData("video", file.getName(), requestFile);
+//
+//
+//        // finally, execute the request
+//        Call<ResponseBody> call = service.upload(body);
 
-            MultipartBody.Part body =
-                    MultipartBody.Part.createFormData("video", file.getName(), requestFile);
+//        call.enqueue(new Callback<ResponseBody>() {
+//            @Override
+//            public void onResponse(Call<ResponseBody> call,
+//                                   Response<ResponseBody> response) {
+//                Log.v("Upload", "success");
+//                if (response.body() != null){
+//                    try {
+//                        Log.d("Upload", response.body().string());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
 
+//            @Override
+//            public void onFailure(Call<ResponseBody> call, Throwable t) {
+//                Log.e("Upload error:", t.getMessage());
+//            }
+//        });
 
-        // finally, execute the request
-        Call<ResponseBody> call = service.upload(body);
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call,
-                                   Response<ResponseBody> response) {
-                Log.v("Upload", "success");
-                if (response.body() != null){
-                    try {
-                        Log.d("Upload", response.body().string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            RequestBody requestFile = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM).addFormDataPart("video", file.getName(),
+                    RequestBody.create(MediaType.parse("video/*"), file))
+                    .build();
+
+            Call<String> call = service.upload(requestFile);
+            call.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    Log.v("Upload", "success");
+                    Log.d("Upload", response.body().toString());
+
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("Upload error:", t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    Log.e("Upload error:", t.getMessage());
+                }
+            });
         }
 
     }
