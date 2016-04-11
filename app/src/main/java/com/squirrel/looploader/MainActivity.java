@@ -13,7 +13,7 @@ import android.view.View;
 import com.squirrel.looploader.dummy.DummyContent;
 import com.squirrel.looploader.helpers.DocsHelper;
 import com.squirrel.looploader.helpers.IntentHelper;
-import com.squirrel.looploader.services.VideoUploadService;
+import com.squirrel.looploader.services.VideoService;
 
 import java.io.File;
 
@@ -80,8 +80,8 @@ public class MainActivity extends AppCompatActivity implements
 
                 Log.d("TAG", "file exists? " + exists);
 
-                VideoUploadService videoUploadService = new VideoUploadService();
-                videoUploadService.uploadFile(real_path);
+                VideoService videoService = new VideoService();
+                videoService.uploadFile(real_path);
             }
         }
     }

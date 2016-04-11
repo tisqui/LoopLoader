@@ -1,5 +1,6 @@
 package com.squirrel.looploader.services;
 
+import com.google.gson.Gson;
 import com.squirrel.looploader.BuildConfig;
 
 import okhttp3.OkHttpClient;
@@ -20,7 +21,7 @@ public class ServiceGenerator {
         private static Retrofit.Builder builder =
                 new Retrofit.Builder()
                         .baseUrl(BuildConfig.API_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create());
+                        .addConverterFactory(GsonConverterFactory.create(new Gson()));
 
         public static <S> S createService(Class<S> serviceClass) {
             Retrofit retrofit = builder.client(httpClient.addInterceptor(sInterceptor).build()).build();
