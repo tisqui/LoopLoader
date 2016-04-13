@@ -1,5 +1,7 @@
 package com.squirrel.looploader.model;
 
+import android.support.annotation.Nullable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -10,17 +12,20 @@ import java.io.Serializable;
  */
 public class ProgressResult implements Serializable {
 
+    @Nullable
     @SerializedName("progress")
     @Expose
     private float mProgress;
 
+    @Nullable
     @SerializedName("ready")
     @Expose
-    private float mReady;
+    private String mReady;
 
+    @Nullable
     @SerializedName("error")
     @Expose
-    private float mError;
+    private String mError;
 
     @Override
     public String toString() {
@@ -39,20 +44,21 @@ public class ProgressResult implements Serializable {
         mProgress = progress;
     }
 
-    public float getReady() {
+    @Nullable
+    public String getReady() {
         return mReady;
     }
 
-    public void setReady(float ready) {
+    public void setReady(@Nullable String ready) {
         mReady = ready;
     }
 
-    public float getError() {
+    @Nullable
+    public String getError() {
         return mError;
     }
 
-    public void setError(float error) {
+    public void setError(@Nullable String error) {
         mError = error;
     }
-
 }

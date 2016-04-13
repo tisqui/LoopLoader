@@ -20,11 +20,20 @@ import retrofit2.Response;
  */
 public class VideoService {
     private LoopAPI mLoopAPI;
+    private String mId;
 
     public final static String TAG = VideoService.class.getSimpleName();
 
     public VideoService() {
         mLoopAPI = ServiceGenerator.createService(LoopAPI.class);
+    }
+
+    public String getId() {
+        return mId;
+    }
+
+    public void setId(String id) {
+        mId = id;
     }
 
     public void uploadFile(String path) {
@@ -42,7 +51,8 @@ public class VideoService {
                 @Override
                 public void onResponse(Call<String> call, Response<String> response) {
                     Log.v("Upload", "success");
-                    Log.d("Upload", response.body().toString());
+                    mId = response.body().toString();
+                    Log.d("Upload", mId);
                 }
 
                 @Override
@@ -56,6 +66,7 @@ public class VideoService {
 
     public void getProcessingProgress(String videoId){
         Call<ProgressResult> call = mLoopAPI.getProgress(videoId);
+        Log.d("Progress: ", "Requesting the progress for: " + videoId);
         call.enqueue(new Callback<ProgressResult>() {
             @Override
             public void onResponse(Call<ProgressResult> call, Response<ProgressResult> response) {

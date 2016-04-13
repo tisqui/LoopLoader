@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 
 import com.squirrel.looploader.dummy.DummyContent;
 import com.squirrel.looploader.helpers.DocsHelper;
@@ -25,6 +26,8 @@ public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
 
     @Bind(R.id.toolbar) Toolbar mToolbar;
+    @Bind(R.id.chack_status_button) Button mStatusButt;
+    private VideoService mVideoService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,16 @@ public class MainActivity extends AppCompatActivity implements
         ButterKnife.bind(this);
 
         setSupportActionBar(mToolbar);
+        mVideoService = new VideoService();
+
+        mStatusButt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mVideoService.getId() != null){
+                    mVideoService.getProcessingProgress(mVideoService.getId());
+                }
+            }
+        });
 
     }
 
@@ -80,8 +93,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 Log.d("TAG", "file exists? " + exists);
 
-                VideoService videoService = new VideoService();
-                videoService.uploadFile(real_path);
+                mVideoService.uploadFile(real_path);
             }
         }
     }
