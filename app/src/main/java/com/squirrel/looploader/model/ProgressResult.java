@@ -15,7 +15,7 @@ public class ProgressResult implements Serializable {
     @Nullable
     @SerializedName("progress")
     @Expose
-    private float mProgress;
+    private Float mProgress;
 
     @Nullable
     @SerializedName("ready")
@@ -36,11 +36,11 @@ public class ProgressResult implements Serializable {
                 '}';
     }
 
-    public float getProgress() {
+    public Float getProgress() {
         return mProgress;
     }
 
-    public void setProgress(float progress) {
+    public void setProgress(Float progress) {
         mProgress = progress;
     }
 

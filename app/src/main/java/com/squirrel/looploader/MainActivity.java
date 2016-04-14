@@ -1,15 +1,19 @@
 package com.squirrel.looploader;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.squirrel.looploader.dummy.DummyContent;
 import com.squirrel.looploader.helpers.DocsHelper;
@@ -25,6 +29,11 @@ import butterknife.OnClick;
 public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
 
+    private static int sNotificationSerialId = 101;
+
+    NotificationManager mNotificationManager;
+    NotificationCompat.Builder mNotificationBuilder;
+
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.chack_status_button) Button mStatusButt;
     private VideoService mVideoService;
@@ -38,14 +47,60 @@ public class MainActivity extends AppCompatActivity implements
         setSupportActionBar(mToolbar);
         mVideoService = new VideoService();
 
+        mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationBuilder = new NotificationCompat.Builder(this);
+        mNotificationBuilder.setContentTitle("Picture Upload")
+                .setContentText("Upload in progress")
+                .setSmallIcon(R.drawable.ic_arrow_left_bold_circle_outline);
+
+
         mStatusButt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mVideoService.getId() != null){
-                    mVideoService.getProcessingProgress(mVideoService.getId());
-                }
+//                if(mVideoService.getId() != null){
+//                    mVideoService.getProcessingProgress(mVideoService.getId());
+//                }
             }
         });
+
+    }
+
+    private void checkTheProgress(){
+        mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationBuilder = new NotificationCompat.Builder(this);
+        mNotificationBuilder.setContentTitle("Picture Upload")
+                .setContentText("Upload in progress")
+                .setSmallIcon(R.drawable.ic_arrow_left_bold_circle_outline);
+
+//        // Start a progress checking operation
+//        new Thread(
+//                new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        int progress = 0;
+//
+//                        do{
+//                            try {
+//                                // Sleep for 5 seconds
+//                                Thread.sleep(5*1000);
+//                            } catch (InterruptedException e) {
+//                            }
+//                            mNotificationBuilder.setProgress(100, progress,false);
+//                            mNotificationManager.notify(PROGRESS_NOTIFICATION_ID, mNotificationBuilder.build());
+//                            progress+=10;
+//                        } while (progress <= 100);
+//
+//                        // When the loop is finished, updates the notification
+//                        mNotificationBuilder.setContentText("Upload complete")
+//                                // Removes the progress bar
+//                                .setProgress(0,0,false);
+//                        mNotificationManager.notify(PROGRESS_NOTIFICATION_ID, mNotificationBuilder.build());
+//                    }
+//                }
+//// Starts the thread by calling the run() method in its Runnable
+//        ).start();
 
     }
 
@@ -85,21 +140,75 @@ public class MainActivity extends AppCompatActivity implements
 
                 Uri uri = data.getData();
 
-                String real_path = DocsHelper.getMediaPath(uri, this);
-                Log.d("TAG", "real path " + real_path);
+                String realPath = DocsHelper.getMediaPath(uri, this);
+                Log.d("TAG", "real path " + realPath);
 
-                File file = new File(real_path);
+                File file = new File(realPath);
                 boolean exists = file.exists();
 
                 Log.d("TAG", "file exists? " + exists);
 
-                mVideoService.uploadFile(real_path);
+                mVideoService.uploadFile(realPath, new VideoService.FileUploadCallback() {
+                    @Override
+                    public void onSuccess(String fileId) {
+                        new ConvertionProcessing(fileId);
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        Log.d("TAG", "Uploading error: " + throwable.getMessage());
+                        Toast.makeText(getApplicationContext(),
+                                "Uploading error: " + throwable.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }
     }
 
     @Override
     public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
+    }
+
+    private class ConvertionProcessing{
+
+        private String mVideoId;
+        private int mNotificationId = sNotificationSerialId++;
+        private VideoService.ServiceCallback mServiceCallback;
+
+        public ConvertionProcessing(String videoId) {
+            mVideoId = videoId;
+            updateNotification(0);
+            mServiceCallback = new VideoService.ServiceCallback() {
+                @Override
+                public void onProgress(float progress) {
+                    //schedule the getProcessingProgress for every 10sec
+                    //call is with mServiceCallback
+                    mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
+                }
+
+                @Override
+                public void onReady(String filePath) {
+                //change notification to ready
+
+                    //TODO show the download button
+                }
+
+                @Override
+                public void onError(String error) {
+                    //change notification state to error
+                }
+            };
+            mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
+        }
+
+        private void updateNotification(int progress){
+            mNotificationBuilder.setProgress(100, progress,false);
+            mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
+        }
+
+
 
     }
 

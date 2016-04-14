@@ -36,14 +36,14 @@ public class VideoService {
         mId = id;
     }
 
-    public void uploadFile(String path) {
-        Log.d (TAG, "FILE: " + path + " start upload");
+    public void uploadFile(String path, final FileUploadCallback fileUploadCallback) {
+        Log.d(TAG, "FILE: " + path + " start upload");
 
-        File file= new File(path);
-        if(file.exists()){
+        File file = new File(path);
+        if (file.exists()) {
             RequestBody requestFile = new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM).addFormDataPart("video", file.getName(),
-                    RequestBody.create(MediaType.parse("video/*"), file))
+                    .setType(MultipartBody.FORM).addFormDataPart("video", file.getName(),
+                            RequestBody.create(MediaType.parse("video/*"), file))
                     .build();
 
             Call<String> call = mLoopAPI.upload(requestFile);
@@ -53,18 +53,20 @@ public class VideoService {
                     Log.v("Upload", "success");
                     mId = response.body().toString();
                     Log.d("Upload", mId);
+                    fileUploadCallback.onSuccess(response.body().toString());
                 }
 
                 @Override
                 public void onFailure(Call<String> call, Throwable t) {
                     Log.e("Upload error:", t.getMessage());
+                    fileUploadCallback.onError(t);
                 }
             });
         }
     }
 
 
-    public void getProcessingProgress(String videoId){
+    public void getProcessingProgress(String videoId, final ServiceCallback serviceCallback) {
         Call<ProgressResult> call = mLoopAPI.getProgress(videoId);
         Log.d("Progress: ", "Requesting the progress for: " + videoId);
         call.enqueue(new Callback<ProgressResult>() {
@@ -73,13 +75,36 @@ public class VideoService {
                 int statusCode = response.code();
                 Log.v("Progress", "success");
                 Log.d("Progress: ", response.body().toString());
+
+                if (response.body().getProgress() != null) {
+                    serviceCallback.onProgress(response.body().getProgress());
+                } else if (response.body().getReady() != null) {
+                    serviceCallback.onReady(response.body().getReady());
+                } else if (response.body().getError() != null) {
+                    serviceCallback.onError(response.body().getError());
+                }
             }
 
             @Override
             public void onFailure(Call<ProgressResult> call, Throwable t) {
                 Log.e("Progress error:", t.getMessage());
+                serviceCallback.onError("Progress request error:" + t.getMessage());
             }
         });
+    }
+
+    public interface ServiceCallback {
+        void onProgress(float progress);
+
+        void onReady(String filePath);
+
+        void onError(String error);
+    }
+
+    public interface FileUploadCallback {
+        void onSuccess(String fileId);
+
+        void onError(Throwable throwable);
     }
 
 }
