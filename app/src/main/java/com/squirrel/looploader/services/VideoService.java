@@ -1,5 +1,6 @@
 package com.squirrel.looploader.services;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.squirrel.looploader.model.LoopAPI;
@@ -10,6 +11,7 @@ import java.io.File;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -93,6 +95,36 @@ public class VideoService {
         });
     }
 
+    public void downloadVideo(final Context context, final String fileResult, final FileDownloadCallback fileDownloadCallback){
+        String[] result = fileResult.split("/");
+        String id = result[2];
+        String name = result[3];
+
+        Call<ResponseBody> call = mLoopAPI.downloadVideo(id, name);
+        Log.d("Download: ", "Downloading the file " + fileResult);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccess()) {
+                    Log.d("Download: ", "Server has file " + fileResult);
+                    String fileName = "video" + "_processed";
+                    fileDownloadCallback.onSuccess(response.body());
+                }
+                else {
+                    Log.d(TAG, "server contact failed");
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, "error");
+                fileDownloadCallback.onError(t);
+            }
+        });
+    }
+
+
     public interface ServiceCallback {
         void onProgress(float progress);
 
@@ -103,6 +135,12 @@ public class VideoService {
 
     public interface FileUploadCallback {
         void onSuccess(String fileId);
+
+        void onError(Throwable throwable);
+    }
+
+    public interface FileDownloadCallback {
+        void onSuccess(ResponseBody responseBody);
 
         void onError(Throwable throwable);
     }

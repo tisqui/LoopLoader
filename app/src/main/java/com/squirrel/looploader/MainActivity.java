@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
@@ -25,6 +26,7 @@ import java.io.File;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements
     NotificationCompat.Builder mNotificationBuilder;
 
     @Bind(R.id.toolbar) Toolbar mToolbar;
-    @Bind(R.id.chack_status_button) Button mStatusButt;
+    @Bind(R.id.download_button) Button mDownloadButton;
     private VideoService mVideoService;
 
     @Override
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        mDownloadButton.setVisibility(View.INVISIBLE);
 
         setSupportActionBar(mToolbar);
         mVideoService = new VideoService();
@@ -50,19 +53,9 @@ public class MainActivity extends AppCompatActivity implements
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationBuilder = new NotificationCompat.Builder(this);
-        mNotificationBuilder.setContentTitle("Picture Upload")
-                .setContentText("Upload in progress")
-                .setSmallIcon(R.drawable.ic_arrow_left_bold_circle_outline);
-
-
-        mStatusButt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                if(mVideoService.getId() != null){
-//                    mVideoService.getProcessingProgress(mVideoService.getId());
-//                }
-            }
-        });
+        mNotificationBuilder.setContentTitle("Video Processing")
+                .setContentText("Processing in progress")
+                .setSmallIcon(android.R.drawable.stat_sys_download);
 
     }
 
@@ -176,37 +169,79 @@ public class MainActivity extends AppCompatActivity implements
         private String mVideoId;
         private int mNotificationId = sNotificationSerialId++;
         private VideoService.ServiceCallback mServiceCallback;
+        private Handler mHandler;
+        private final int INTERVAL = 10000;
 
         public ConvertionProcessing(String videoId) {
             mVideoId = videoId;
-            updateNotification(0);
+            mNotificationBuilder.setContentText("Processing in progress");
+            mNotificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download);
+            updateNotification(100, 0);
+            mHandler = new Handler();
+
             mServiceCallback = new VideoService.ServiceCallback() {
                 @Override
                 public void onProgress(float progress) {
+
+                    updateNotification(100, Math.round(progress*100));
                     //schedule the getProcessingProgress for every 10sec
-                    //call is with mServiceCallback
-                    mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
+
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
+                        }
+                    }, INTERVAL);
                 }
 
                 @Override
-                public void onReady(String filePath) {
+                public void onReady(final String filePath) {
                 //change notification to ready
+                    mNotificationBuilder.setContentText("Video processing complete");
+                    updateNotification(0, 0);
+                    mDownloadButton.setVisibility(View.VISIBLE);
+                    mDownloadButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mVideoService.downloadVideo(getApplicationContext(), filePath, new VideoService.FileDownloadCallback() {
+                                @Override
+                                public void onSuccess(ResponseBody responseBody) {
+                                    boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
+                                            getApplicationContext(), filePath);
+                                    Log.d("Download", "file download was a success? " + writtenToDisk);
+                                    mDownloadButton.setVisibility(View.INVISIBLE);
+                                    Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
+                                    //TODO add the file to the list of files to share
+                                }
 
-                    //TODO show the download button
+                                @Override
+                                public void onError(Throwable throwable) {
+                                    Log.e("Download", "Download error");
+                                    Toast.makeText(getApplicationContext(), "File upload error, try once more", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    });
                 }
 
                 @Override
                 public void onError(String error) {
                     //change notification state to error
+                    mNotificationBuilder.setContentText("Video processing error");
+                    mNotificationBuilder.setSmallIcon(android.R.drawable.stat_notify_error);
+                    updateNotification(0,0);
+
                 }
             };
             mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
         }
 
-        private void updateNotification(int progress){
-            mNotificationBuilder.setProgress(100, progress,false);
+        private void updateNotification(int max, int progress){
+            mNotificationBuilder.setProgress(max, progress,false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
         }
+
+
 
 
 

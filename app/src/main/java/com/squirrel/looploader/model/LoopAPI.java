@@ -1,6 +1,7 @@
 package com.squirrel.looploader.model;
 
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -22,7 +23,7 @@ public interface LoopAPI {
     @GET("/progress/")
     Call<ProgressResult> getProgress(@Query("id") String videoId);
 
-    @GET("{file}")
-    Call<ProgressResult> getFile(@Path("file") String fileResult);
+    @GET("/file/{id}/{name}")
+    Call<ResponseBody> downloadVideo(@Path("id") String id, @Path("name") String name);
 
 }

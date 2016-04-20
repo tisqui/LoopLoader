@@ -16,8 +16,9 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/chack_status_button"
-        android:text="Check status"/>
+        android:id="@+id/download_button"
+        android:text="Download ready video"/>
+
 
     <fragment
         android:id="@+id/videos_list_fragment"
@@ -25,6 +26,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:layout_below="@+id/chack_status_button"/>
+        android:layout_below="@+id/download_button"/>
 
 </RelativeLayout>
