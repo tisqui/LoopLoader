@@ -130,8 +130,14 @@ public class DocsHelper {
                 }
             }
         } catch (IOException e) {
-            Log.d("Download error", e.getMessage());
+            Log.d("Download", e.getMessage());
             return false;
         }
+    }
+
+    public static String[] getFilesList(Context context){
+        String path = context.getFilesDir().getPath();
+        Log.d("getFilesList: Path=", path);
+        return context.fileList();
     }
 }

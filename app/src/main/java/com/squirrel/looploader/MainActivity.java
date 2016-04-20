@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.squirrel.looploader.dummy.DummyContent;
 import com.squirrel.looploader.helpers.DocsHelper;
 import com.squirrel.looploader.helpers.IntentHelper;
 import com.squirrel.looploader.services.VideoService;
@@ -159,10 +158,10 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-
-    }
+//    @Override
+//    public void onListFragmentInteraction(VideoItem item) {
+//
+//    }
 
     private class ConvertionProcessing{
 
@@ -206,12 +205,14 @@ public class MainActivity extends AppCompatActivity implements
                             mVideoService.downloadVideo(getApplicationContext(), filePath, new VideoService.FileDownloadCallback() {
                                 @Override
                                 public void onSuccess(ResponseBody responseBody) {
+                                    String fileName = filePath.split("/")[3] + "processed";
                                     boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
                                             getApplicationContext(), filePath);
                                     Log.d("Download", "file download was a success? " + writtenToDisk);
                                     mDownloadButton.setVisibility(View.INVISIBLE);
                                     Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
                                     //TODO add the file to the list of files to share
+
                                 }
 
                                 @Override
@@ -240,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements
             mNotificationBuilder.setProgress(max, progress,false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
         }
-
 
 
 

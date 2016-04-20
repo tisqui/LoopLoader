@@ -1,27 +1,31 @@
 package com.squirrel.looploader;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squirrel.looploader.dummy.DummyContent.DummyItem;
+import com.squirrel.looploader.model.VideoFile;
 
-import java.util.List;
+import java.io.File;
+import java.util.ArrayList;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * TODO: Replace the implementation with code for your data type.
- */
-public class MyprocessedVideoRecyclerViewAdapter extends RecyclerView.Adapter<MyprocessedVideoRecyclerViewAdapter.ViewHolder> {
 
-    private final List<DummyItem> mValues;
-    private final ProcessedVideoFragment.OnListFragmentInteractionListener mListener;
+public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecyclerViewAdapter.ViewHolder> {
 
-    public MyprocessedVideoRecyclerViewAdapter(List<DummyItem> items, ProcessedVideoFragment.OnListFragmentInteractionListener listener) {
-        mValues = items;
+    int id = 100;
+    private ArrayList<VideoFile> mValues;
+    private ProcessedVideoFragment.OnListFragmentInteractionListener mListener;
+
+    public ArrayList<VideoFile> getValues() {
+        return mValues;
+    }
+
+    public VideosRecyclerViewAdapter(ProcessedVideoFragment.OnListFragmentInteractionListener listener, ArrayList<VideoFile> videous) {
         mListener = listener;
+        mValues = videous;
     }
 
     @Override
@@ -34,8 +38,8 @@ public class MyprocessedVideoRecyclerViewAdapter extends RecyclerView.Adapter<My
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mIdView.setText(mValues.get(position).getFileName());
+        holder.mContentView.setText(mValues.get(position).getFilePath());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,10 +47,20 @@ public class MyprocessedVideoRecyclerViewAdapter extends RecyclerView.Adapter<My
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(holder.mItem);
+//                    mListener.onListFragmentInteraction(holder.mItem);
                 }
             }
         });
+    }
+
+    public void updateFileList(Context context){
+        File[] listFiles = context.getFilesDir().listFiles();
+        mValues.clear();
+        for(File file : listFiles){
+            VideoFile item = new VideoFile(file.getPath(), file);
+            mValues.add(item);
+        }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -58,7 +72,7 @@ public class MyprocessedVideoRecyclerViewAdapter extends RecyclerView.Adapter<My
         public final View mView;
         public final TextView mIdView;
         public final TextView mContentView;
-        public DummyItem mItem;
+        public VideoFile mItem;
 
         public ViewHolder(View view) {
             super(view);

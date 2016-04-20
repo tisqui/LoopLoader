@@ -1,18 +1,24 @@
 package com.squirrel.looploader;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
-import com.squirrel.looploader.dummy.DummyContent;
-import com.squirrel.looploader.dummy.DummyContent.DummyItem;
+import com.squirrel.looploader.model.VideoFile;
+
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * A fragment representing a list of Items.
@@ -26,6 +32,7 @@ public class ProcessedVideoFragment extends Fragment {
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
     private int mColumnCount = 1;
+    private VideosRecyclerViewAdapter mAdapter;
     private OnListFragmentInteractionListener mListener;
     private TextView mEmptyView;
 
@@ -58,10 +65,19 @@ public class ProcessedVideoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_processedvideo_list, container, false);
 
         // Set the adapter
         if (rootView != null) {
+            Button btn = (Button) rootView.findViewById(R.id.refrest_btn);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    updateFilesList();
+                }
+            });
+
             Context context = rootView.getContext();
             RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.list);
             mEmptyView = (TextView) rootView.findViewById(R.id.empty_view);
@@ -71,9 +87,23 @@ public class ProcessedVideoFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new MyprocessedVideoRecyclerViewAdapter(DummyContent.ITEMS, mListener));
 
-            if(DummyContent.ITEMS.isEmpty()){
+            //get inititial files data
+            Log.d(ProcessedVideoFragment.class.getSimpleName(), "Getting the folder data");
+            Log.d(ProcessedVideoFragment.class.getSimpleName(), "Video path: " +
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/"));
+            Log.d(ProcessedVideoFragment.class.getSimpleName(), "App folder files list: ");
+            for (String item : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/").list()){
+                Log.d(ProcessedVideoFragment.class.getSimpleName(), "File: " + item);
+            }
+
+            mAdapter =
+                    new VideosRecyclerViewAdapter(mListener, getLocalFolderFilesList());
+            recyclerView.setAdapter(mAdapter);
+
+            mAdapter.updateFileList(getContext());
+
+            if(mAdapter.getValues().isEmpty()){
                 recyclerView.setVisibility(View.GONE);
                 mEmptyView.setVisibility(View.VISIBLE);
             }
@@ -84,6 +114,7 @@ public class ProcessedVideoFragment extends Fragment {
         }
         return rootView;
     }
+
 
 
     @Override
@@ -103,6 +134,11 @@ public class ProcessedVideoFragment extends Fragment {
         mListener = null;
     }
 
+    public void updateFilesList(){
+        mAdapter.updateFileList(getContext());
+    }
+
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -115,6 +151,31 @@ public class ProcessedVideoFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+    }
+
+
+    public ArrayList<VideoFile> getLocalFolderFilesList(){
+        File[] listFiles = getActivity().getApplicationContext().getFilesDir().listFiles();
+        ArrayList<VideoFile> videoFiles = new ArrayList<VideoFile>();
+        for(File file : listFiles){
+            VideoFile item = new VideoFile(file.getPath(), file);
+            videoFiles.add(item);
+        }
+        return videoFiles;
+    }
+
+    public ArrayList<VideoFile> getVideoFilesList(){
+        ContextWrapper cw = new ContextWrapper(getActivity());
+        File mydir = cw.getDir("vidDir", Context.MODE_PRIVATE);
+        File lister = mydir.getAbsoluteFile();
+        Log.d(ProcessedVideoFragment.class.getSimpleName(), "Video files: " + lister.list().toString());
+
+        ArrayList<VideoFile> videoFiles = new ArrayList<VideoFile>();
+        for (File file : lister.listFiles())
+        {
+            VideoFile item = new VideoFile(file.getPath(), file);
+            videoFiles.add(item);
+        }
+        return videoFiles;
     }
 }

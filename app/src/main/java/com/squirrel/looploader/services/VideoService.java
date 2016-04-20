@@ -107,7 +107,6 @@ public class VideoService {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccess()) {
                     Log.d("Download: ", "Server has file " + fileResult);
-                    String fileName = "video" + "_processed";
                     fileDownloadCallback.onSuccess(response.body());
                 }
                 else {

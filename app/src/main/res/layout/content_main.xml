@@ -17,8 +17,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/download_button"
-        android:text="Download ready video"/>
-
+        android:text="Download ready video"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp"/>
 
     <fragment
         android:id="@+id/videos_list_fragment"
