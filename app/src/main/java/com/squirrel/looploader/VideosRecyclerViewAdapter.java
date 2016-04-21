@@ -60,7 +60,8 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
 //        if(!DocsHelper.createDirIfNotExists(Environment.DIRECTORY_DCIM+"/Loops/")){
 //            return;
 //        }
-        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/").listFiles();
+//        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/").listFiles();
+        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Loops/").listFiles();
 
         mValues.clear();
         if(listFiles != null){

@@ -1,6 +1,7 @@
 package com.squirrel.looploader.helpers;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
@@ -100,15 +101,34 @@ public class DocsHelper {
         return ret;
     }
 
+    public static boolean createAlbumStorageDirIfNotExisting(String albumName) {
+        // Get the directory for the user's public pictures directory.
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), albumName);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                Log.e("DocsHelper", "Problem creating Loops folder");
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static boolean writeResponseBodyToDisk(ResponseBody body, final Context context, String fileName) {
         try {
 
             //check if the directory exists
-            if(!createDirIfNotExists(Environment.DIRECTORY_DCIM + "/Loops/")){
+//            if(!createDirIfNotExists(Environment.DIRECTORY_DCIM + "/Loops/")){
+//                return false;
+//            }
+
+//            File videoFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/"), fileName);
+
+            if(!createAlbumStorageDirIfNotExisting("/Loops/")){
                 return false;
             }
 
-            File videoFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/"), fileName);
+            File videoFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Loops/"), fileName);
 
 
             InputStream inputStream = null;
@@ -138,6 +158,12 @@ public class DocsHelper {
                 }
 
                 outputStream.flush();
+
+                //tell the gallery to see the new video
+                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                Uri contentUri = Uri.fromFile(videoFile);
+                mediaScanIntent.setData(contentUri);
+                context.sendBroadcast(mediaScanIntent);
 
                 return true;
             } catch (IOException e) {
