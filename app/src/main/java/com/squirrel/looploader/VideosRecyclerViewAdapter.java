@@ -1,12 +1,14 @@
 package com.squirrel.looploader;
 
 import android.content.Context;
+import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.squirrel.looploader.helpers.DocsHelper;
 import com.squirrel.looploader.model.VideoFile;
 
 import java.io.File;
@@ -38,8 +40,8 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).getFileName());
-        holder.mContentView.setText(mValues.get(position).getFilePath());
+        holder.mIdView.setText(String.valueOf(position+1));
+        holder.mContentView.setText(mValues.get(position).getFileName());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,11 +56,20 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
     }
 
     public void updateFileList(Context context){
-        File[] listFiles = context.getFilesDir().listFiles();
+//
+//        if(!DocsHelper.createDirIfNotExists(Environment.DIRECTORY_DCIM+"/Loops/")){
+//            return;
+//        }
+        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/").listFiles();
+
         mValues.clear();
-        for(File file : listFiles){
-            VideoFile item = new VideoFile(file.getPath(), file);
-            mValues.add(item);
+        if(listFiles != null){
+            for(File file : listFiles){
+                if(DocsHelper.checkIfVideo(file.getName())){
+                    VideoFile item = new VideoFile(file.getPath(), file);
+                    mValues.add(item);
+                }
+            }
         }
         notifyDataSetChanged();
     }

@@ -1,7 +1,6 @@
 package com.squirrel.looploader;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -15,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.squirrel.looploader.helpers.DocsHelper;
 import com.squirrel.looploader.model.VideoFile;
 
 import java.io.File;
@@ -101,7 +101,7 @@ public class ProcessedVideoFragment extends Fragment {
                     new VideosRecyclerViewAdapter(mListener, getLocalFolderFilesList());
             recyclerView.setAdapter(mAdapter);
 
-            mAdapter.updateFileList(getContext());
+//            mAdapter.updateFileList(getContext());
 
             if(mAdapter.getValues().isEmpty()){
                 recyclerView.setVisibility(View.GONE);
@@ -155,27 +155,21 @@ public class ProcessedVideoFragment extends Fragment {
 
 
     public ArrayList<VideoFile> getLocalFolderFilesList(){
-        File[] listFiles = getActivity().getApplicationContext().getFilesDir().listFiles();
         ArrayList<VideoFile> videoFiles = new ArrayList<VideoFile>();
-        for(File file : listFiles){
-            VideoFile item = new VideoFile(file.getPath(), file);
-            videoFiles.add(item);
+//        if(!DocsHelper.createDirIfNotExists(Environment.DIRECTORY_DCIM+"/Loops/")){
+//            return videoFiles;
+//        }
+        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/").listFiles();
+
+        if(listFiles != null) {
+            for(File file : listFiles){
+                if(DocsHelper.checkIfVideo(file.getName())){
+                    VideoFile item = new VideoFile(file.getPath(), file);
+                    videoFiles.add(item);
+                }
+            }
         }
         return videoFiles;
     }
 
-    public ArrayList<VideoFile> getVideoFilesList(){
-        ContextWrapper cw = new ContextWrapper(getActivity());
-        File mydir = cw.getDir("vidDir", Context.MODE_PRIVATE);
-        File lister = mydir.getAbsoluteFile();
-        Log.d(ProcessedVideoFragment.class.getSimpleName(), "Video files: " + lister.list().toString());
-
-        ArrayList<VideoFile> videoFiles = new ArrayList<VideoFile>();
-        for (File file : lister.listFiles())
-        {
-            VideoFile item = new VideoFile(file.getPath(), file);
-            videoFiles.add(item);
-        }
-        return videoFiles;
-    }
 }

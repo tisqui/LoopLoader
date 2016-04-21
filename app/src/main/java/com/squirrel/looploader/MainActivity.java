@@ -66,34 +66,6 @@ public class MainActivity extends AppCompatActivity implements
                 .setContentText("Upload in progress")
                 .setSmallIcon(R.drawable.ic_arrow_left_bold_circle_outline);
 
-//        // Start a progress checking operation
-//        new Thread(
-//                new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        int progress = 0;
-//
-//                        do{
-//                            try {
-//                                // Sleep for 5 seconds
-//                                Thread.sleep(5*1000);
-//                            } catch (InterruptedException e) {
-//                            }
-//                            mNotificationBuilder.setProgress(100, progress,false);
-//                            mNotificationManager.notify(PROGRESS_NOTIFICATION_ID, mNotificationBuilder.build());
-//                            progress+=10;
-//                        } while (progress <= 100);
-//
-//                        // When the loop is finished, updates the notification
-//                        mNotificationBuilder.setContentText("Upload complete")
-//                                // Removes the progress bar
-//                                .setProgress(0,0,false);
-//                        mNotificationManager.notify(PROGRESS_NOTIFICATION_ID, mNotificationBuilder.build());
-//                    }
-//                }
-//// Starts the thread by calling the run() method in its Runnable
-//        ).start();
-
     }
 
    //Open the video gallery by click on FAB
@@ -207,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements
                                 public void onSuccess(ResponseBody responseBody) {
                                     String fileName = filePath.split("/")[3] + "processed";
                                     boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
-                                            getApplicationContext(), filePath);
+                                            getApplicationContext(), filePath.split("/")[3]);
                                     Log.d("Download", "file download was a success? " + writtenToDisk);
                                     mDownloadButton.setVisibility(View.INVISIBLE);
                                     Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
@@ -241,8 +213,6 @@ public class MainActivity extends AppCompatActivity implements
             mNotificationBuilder.setProgress(max, progress,false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
         }
-
-
 
 
     }

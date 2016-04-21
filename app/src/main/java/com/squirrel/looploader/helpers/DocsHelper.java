@@ -3,6 +3,7 @@ package com.squirrel.looploader.helpers;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -19,6 +20,8 @@ import okhttp3.ResponseBody;
  * Created by squirrel on 4/9/16.
  */
 public class DocsHelper {
+
+    public final String FOLDER_PREF = "/Camera/";
 
     /**
      * Gets the real path for the media files from Uri, using Media provider.
@@ -84,9 +87,29 @@ public class DocsHelper {
         return null;
     }
 
+    public static boolean createDirIfNotExists(String path) {
+        boolean ret = true;
+
+        File file = new File(Environment.getExternalStorageDirectory(), path);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                Log.e("DocsHelper", "Problem creating Loops folder");
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
     public static boolean writeResponseBodyToDisk(ResponseBody body, final Context context, String fileName) {
         try {
-            File videoFile = new File(context.getFilesDir(), fileName);
+
+            //check if the directory exists
+            if(!createDirIfNotExists(Environment.DIRECTORY_DCIM + "/Loops/")){
+                return false;
+            }
+
+            File videoFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/"), fileName);
+
 
             InputStream inputStream = null;
             OutputStream outputStream = null;
@@ -139,5 +162,18 @@ public class DocsHelper {
         String path = context.getFilesDir().getPath();
         Log.d("getFilesList: Path=", path);
         return context.fileList();
+    }
+
+    public static String getFileExt(String fileName) {
+        return fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+    }
+
+    public static boolean checkIfVideo(String fileName){
+        String fileExt = getFileExt(fileName);
+        if(fileExt.equals("3gp") || fileExt.equals("mp4") || fileExt.equals("mkv") || fileExt.equals(" webm")){
+            return true;
+        } else {
+            return false;
+        }
     }
 }
