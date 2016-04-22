@@ -6,22 +6,26 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-
-    <Button
+    
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Refresh"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:id="@+id/refrest_btn"/>
+        android:text="Processed loops:"
+        android:textSize="18dp"
+        android:layout_margin="16dp"/>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="#c0c0c0"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list"
         android:name="com.squirrel.looploader.processedVideoFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
         tools:context=".ProcessedVideoFragment"
         tools:listitem="@layout/fragment_processed_video"/>
 

@@ -1,5 +1,7 @@
 package com.squirrel.looploader;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
 
     private static int sNotificationSerialId = 101;
+    private ProcessedVideoFragment mProcessedVideoFragment;
 
     NotificationManager mNotificationManager;
     NotificationCompat.Builder mNotificationBuilder;
@@ -44,9 +47,19 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
         mDownloadButton.setVisibility(View.INVISIBLE);
 
         setSupportActionBar(mToolbar);
+
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        mProcessedVideoFragment = new ProcessedVideoFragment();
+        fragmentTransaction.add(R.id.processed_videos_list_fragment_container, mProcessedVideoFragment);
+        fragmentTransaction.commit();
+
+
         mVideoService = new VideoService();
 
         mNotificationManager =
@@ -183,8 +196,9 @@ public class MainActivity extends AppCompatActivity implements
                                     Log.d("Download", "file download was a success? " + writtenToDisk);
                                     mDownloadButton.setVisibility(View.INVISIBLE);
                                     Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
-                                    //TODO add the file to the list of files to share
 
+                                    //Update the fragment list
+                                    mProcessedVideoFragment.updateFilesList();
                                 }
 
                                 @Override
@@ -213,7 +227,6 @@ public class MainActivity extends AppCompatActivity implements
             mNotificationBuilder.setProgress(max, progress,false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
         }
-
 
     }
 
