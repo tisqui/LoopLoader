@@ -2,6 +2,7 @@ package com.squirrel.looploader;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.GridLayoutManager;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.squirrel.looploader.helpers.DocsHelper;
+import com.squirrel.looploader.helpers.IntentHelper;
 import com.squirrel.looploader.model.VideoFile;
 
 import java.io.File;
@@ -90,7 +92,17 @@ public class ProcessedVideoFragment extends Fragment {
             }
 
             mAdapter =
-                    new VideosRecyclerViewAdapter(mListener, getLocalFolderFilesList());
+                    new VideosRecyclerViewAdapter(mListener, getLocalFolderFilesList(), new VideosRecyclerViewAdapter.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(VideoFile item) {
+                            //share to instagram on click
+                            Intent shareIntent = IntentHelper.getInstagramIntent(item.getFilePath());
+                            Log.d("Share ", "Path " + item.getFilePath());
+                            if(shareIntent != null){
+                                startActivity(Intent.createChooser(shareIntent, "Share to "));
+                            }
+                        }
+                    });
             recyclerView.setAdapter(mAdapter);
 
 //            mAdapter.updateFileList(getContext());
@@ -103,6 +115,7 @@ public class ProcessedVideoFragment extends Fragment {
                 recyclerView.setVisibility(View.VISIBLE);
                 mEmptyView.setVisibility(View.GONE);
             }
+
         }
         return rootView;
     }

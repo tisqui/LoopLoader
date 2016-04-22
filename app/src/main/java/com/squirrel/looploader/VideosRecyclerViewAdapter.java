@@ -20,14 +20,22 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
     int id = 100;
     private ArrayList<VideoFile> mValues;
     private ProcessedVideoFragment.OnListFragmentInteractionListener mListener;
+    private final OnItemClickListener mOnItemClickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(VideoFile item);
+    }
 
     public ArrayList<VideoFile> getValues() {
         return mValues;
     }
 
-    public VideosRecyclerViewAdapter(ProcessedVideoFragment.OnListFragmentInteractionListener listener, ArrayList<VideoFile> videous) {
+    public VideosRecyclerViewAdapter(ProcessedVideoFragment.OnListFragmentInteractionListener listener,
+                                     ArrayList<VideoFile> videous,
+                                     OnItemClickListener onItemClickListener) {
         mListener = listener;
         mValues = videous;
+        mOnItemClickListener = onItemClickListener;
     }
 
     @Override
@@ -38,10 +46,11 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.mIdView.setText(String.valueOf(position+1));
-        holder.mContentView.setText(mValues.get(position).getFileName());
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
+//        holder.mItem = mValues.get(position);
+//        holder.mIdView.setText(String.valueOf(position+1));
+//        holder.mContentView.setText(mValues.get(position).getFileName());
+        holder.bind(mValues.get(position), position, mOnItemClickListener);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +59,7 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
 //                    mListener.onListFragmentInteraction(holder.mItem);
-                }
+                    }
             }
         });
     }
@@ -96,6 +105,18 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
         @Override
         public String toString() {
             return super.toString() + " '" + mContentView.getText() + "'";
+        }
+
+        public void bind(final VideoFile item, final int position, final OnItemClickListener listener) {
+            mItem = item;
+            mIdView.setText(String.valueOf(position+1));
+            mContentView.setText(item.getFileName());
+
+            mContentView.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    listener.onItemClick(item);
+                }
+            });
         }
     }
 }
