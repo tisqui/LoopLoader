@@ -33,10 +33,13 @@ public class MainActivity extends AppCompatActivity implements
         ProcessedVideoFragment.OnListFragmentInteractionListener {
 
     private static int sNotificationSerialId = 101;
+    private static int sDownloadNotificationSerialId = 201;
     private ProcessedVideoFragment mProcessedVideoFragment;
 
     NotificationManager mNotificationManager;
     NotificationCompat.Builder mNotificationBuilder;
+    NotificationCompat.Builder mDownloadNotificationBuilder;
+
 
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.download_button) Button mDownloadButton;
@@ -67,7 +70,12 @@ public class MainActivity extends AppCompatActivity implements
         mNotificationBuilder = new NotificationCompat.Builder(this);
         mNotificationBuilder.setContentTitle("Video Processing")
                 .setContentText("Processing in progress")
-                .setSmallIcon(android.R.drawable.stat_sys_download);
+                .setSmallIcon(android.R.drawable.stat_sys_upload);
+
+        //set thee notification builder for download notifications
+        mDownloadNotificationBuilder = new NotificationCompat.Builder(this);
+        mDownloadNotificationBuilder.setContentTitle("Download of file complete")
+                .setSmallIcon(android.R.drawable.stat_sys_download_done);
 
     }
 
@@ -152,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements
 
         private String mVideoId;
         private int mNotificationId = sNotificationSerialId++;
+        private int mDownloadNotificationId = sDownloadNotificationSerialId++;
         private VideoService.ServiceCallback mServiceCallback;
         private Handler mHandler;
         private final int INTERVAL = 10000;
@@ -159,15 +168,15 @@ public class MainActivity extends AppCompatActivity implements
         public ConvertionProcessing(String videoId) {
             mVideoId = videoId;
             mNotificationBuilder.setContentText("Processing in progress");
-            mNotificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download);
-            updateNotification(100, 0);
+            mNotificationBuilder.setSmallIcon(android.R.drawable.stat_sys_upload);
+            updateProgressNotification(100, 0);
             mHandler = new Handler();
 
             mServiceCallback = new VideoService.ServiceCallback() {
                 @Override
                 public void onProgress(float progress) {
 
-                    updateNotification(100, Math.round(progress*100));
+                    updateProgressNotification(100, Math.round(progress * 100));
                     //schedule the getProcessingProgress for every 10sec
 
                     mHandler.postDelayed(new Runnable() {
@@ -182,29 +191,39 @@ public class MainActivity extends AppCompatActivity implements
                 public void onReady(final String filePath) {
                 //change notification to ready
                     mNotificationBuilder.setContentText("Video processing complete");
-                    updateNotification(0, 0);
+                    mNotificationBuilder.setSmallIcon(android.R.drawable.stat_sys_upload_done);
+                    updateProgressNotification(0, 0);
                     mDownloadButton.setVisibility(View.VISIBLE);
                     mDownloadButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            mDownloadButton.setVisibility(View.INVISIBLE);
+                            updateDownloadStartNofification(filePath.split("/")[3]);
                             mVideoService.downloadVideo(getApplicationContext(), filePath, new VideoService.FileDownloadCallback() {
                                 @Override
                                 public void onSuccess(ResponseBody responseBody) {
                                     String fileName = filePath.split("/")[3] + "processed";
                                     boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
                                             getApplicationContext(), filePath.split("/")[3]);
+
                                     Log.d("Download", "file download was a success? " + writtenToDisk);
-                                    mDownloadButton.setVisibility(View.INVISIBLE);
                                     Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
 
                                     //Update the fragment list
                                     mProcessedVideoFragment.updateFilesList();
+                                    updateDownloadCompleteNotification(fileName);
                                 }
 
                                 @Override
                                 public void onError(Throwable throwable) {
                                     Log.e("Download", "Download error");
                                     Toast.makeText(getApplicationContext(), "File upload error, try once more", Toast.LENGTH_SHORT).show();
+                                    mDownloadButton.setVisibility(View.VISIBLE);
+
+                                    mDownloadNotificationBuilder
+                                            .setSmallIcon(android.R.drawable.stat_notify_error);
+                                    mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
+
                                 }
                             });
                         }
@@ -216,16 +235,28 @@ public class MainActivity extends AppCompatActivity implements
                     //change notification state to error
                     mNotificationBuilder.setContentText("Video processing error");
                     mNotificationBuilder.setSmallIcon(android.R.drawable.stat_notify_error);
-                    updateNotification(0,0);
+                    updateProgressNotification(0, 0);
 
                 }
             };
             mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
         }
 
-        private void updateNotification(int max, int progress){
+        private void updateProgressNotification(int max, int progress){
             mNotificationBuilder.setProgress(max, progress,false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
+        }
+
+        private void updateDownloadCompleteNotification(String filename){
+            mDownloadNotificationBuilder.setContentText("File: " + filename)
+                    .setSmallIcon(android.R.drawable.stat_sys_download_done);
+            mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
+        }
+
+        private void updateDownloadStartNofification(String filename){
+            mDownloadNotificationBuilder.setContentText("File download in progress: " + filename)
+                    .setSmallIcon(android.R.drawable.stat_sys_download);
+            mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
         }
 
     }

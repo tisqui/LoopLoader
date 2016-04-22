@@ -20,7 +20,8 @@
         android:text="Download ready video"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
-        android:layout_margin="16dp"/>
+        android:layout_margin="16dp"
+        android:padding="8dp"/>
 
     <!--<fragment-->
         <!--android:id="@+id/videos_list_fragment"-->

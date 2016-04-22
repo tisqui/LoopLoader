@@ -127,7 +127,7 @@ public class ProcessedVideoFragment extends Fragment {
     }
 
     public void updateFilesList(){
-        mAdapter.updateFileList(getContext());
+        mAdapter.updateFileList(getActivity().getApplicationContext());
     }
 
     public interface OnListFragmentInteractionListener {
