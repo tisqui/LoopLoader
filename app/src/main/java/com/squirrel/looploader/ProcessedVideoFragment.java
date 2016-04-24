@@ -87,10 +87,6 @@ public class ProcessedVideoFragment extends Fragment {
             Log.d(ProcessedVideoFragment.class.getSimpleName(), "Getting the folder data");
             Log.d(ProcessedVideoFragment.class.getSimpleName(), "Video path: " +
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/"));
-            Log.d(ProcessedVideoFragment.class.getSimpleName(), "App folder files list: ");
-            for (String item : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/").list()) {
-                Log.d(ProcessedVideoFragment.class.getSimpleName(), "File: " + item);
-            }
 
             mAdapter =
                     new VideosRecyclerViewAdapter(mListener, getLocalFolderFilesList(), new VideosRecyclerViewAdapter.OnItemClickListener() {

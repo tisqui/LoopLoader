@@ -46,9 +46,7 @@ public class DocsHelper {
         }
 
         final String selection = "_id=?";
-        final String[] selectionArgs = new String[] {
-                split[1]
-        };
+        final String[] selectionArgs = new String[] {split[1]};
 
         return getDataColumn(context, contentUri, selection, selectionArgs);
     }

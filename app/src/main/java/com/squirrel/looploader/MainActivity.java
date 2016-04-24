@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.squirrel.looploader.helpers.DocsHelper;
@@ -41,8 +40,9 @@ public class MainActivity extends AppCompatActivity implements
     NotificationCompat.Builder mDownloadNotificationBuilder;
 
 
-    @Bind(R.id.toolbar) Toolbar mToolbar;
-    @Bind(R.id.download_button) Button mDownloadButton;
+    @Bind(R.id.toolbar)
+    Toolbar mToolbar;
+    //    @Bind(R.id.download_button) Button mDownloadButton;
     private VideoService mVideoService;
 
     @Override
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mDownloadButton.setVisibility(View.INVISIBLE);
+//        mDownloadButton.setVisibility(View.INVISIBLE);
 
         setSupportActionBar(mToolbar);
 
@@ -69,13 +69,13 @@ public class MainActivity extends AppCompatActivity implements
         //get the action
         String receivedAction = receivedIntent.getAction();
         String receivedType = receivedIntent.getType();
-        if(receivedAction.equals(Intent.ACTION_SEND)){
+        if (receivedAction.equals(Intent.ACTION_SEND)) {
             //content is being shared
-            if(receivedType.startsWith("video/")){
+            if (receivedType.startsWith("video/")) {
                 //we got video!
                 //get the uri of the received video
-                Uri receivedUri = (Uri)receivedIntent.getParcelableExtra(Intent.EXTRA_STREAM);
-                if(receivedUri != null){
+                Uri receivedUri = (Uri) receivedIntent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (receivedUri != null) {
                     if (DocsHelper.isNewGooglePhotosUri(receivedUri)) {
                         Log.d("Shared", " uriPath = " + receivedUri.getPath());
                         String pathUri = receivedUri.getPath();
@@ -91,8 +91,7 @@ public class MainActivity extends AppCompatActivity implements
             } else {
                 Toast.makeText(this, "This application can process only videos :(", Toast.LENGTH_LONG).show();
             }
-        }
-        else if(receivedAction.equals(Intent.ACTION_MAIN)){
+        } else if (receivedAction.equals(Intent.ACTION_MAIN)) {
             //it was not sharing, direct launch
         }
 
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    private void checkTheProgress(){
+    private void checkTheProgress() {
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationBuilder = new NotificationCompat.Builder(this);
@@ -142,9 +141,9 @@ public class MainActivity extends AppCompatActivity implements
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -184,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    private void startUploadingFile(String path){
+    private void startUploadingFile(String path) {
         mVideoService.uploadFile(path, new VideoService.FileUploadCallback() {
             @Override
             public void onSuccess(String fileId) {
@@ -206,11 +205,11 @@ public class MainActivity extends AppCompatActivity implements
 //
 //    }
 
-    private class ConvertionProcessing{
+    private class ConvertionProcessing {
 
         private String mVideoId;
         private int mNotificationId = sNotificationSerialId++;
-        private int mDownloadNotificationId = sDownloadNotificationSerialId++;
+        private int mDownloadNotificationId = mNotificationId;
         private VideoService.ServiceCallback mServiceCallback;
         private Handler mHandler;
         private final int INTERVAL = 10000;
@@ -239,43 +238,35 @@ public class MainActivity extends AppCompatActivity implements
 
                 @Override
                 public void onReady(final String filePath) {
-                //change notification to ready
+                    //change notification to ready
                     mNotificationBuilder.setContentText("Video processing complete");
                     mNotificationBuilder.setSmallIcon(android.R.drawable.stat_sys_upload_done);
                     updateProgressNotification(0, 0);
-                    mDownloadButton.setVisibility(View.VISIBLE);
-                    mDownloadButton.setOnClickListener(new View.OnClickListener() {
+                    //start the download
+                    updateDownloadStartNofification(filePath.split("/")[3]);
+                    mVideoService.downloadVideo(getApplicationContext(), filePath, new VideoService.FileDownloadCallback() {
                         @Override
-                        public void onClick(View v) {
-                            mDownloadButton.setVisibility(View.INVISIBLE);
-                            updateDownloadStartNofification(filePath.split("/")[3]);
-                            mVideoService.downloadVideo(getApplicationContext(), filePath, new VideoService.FileDownloadCallback() {
-                                @Override
-                                public void onSuccess(ResponseBody responseBody) {
-                                    String fileName = filePath.split("/")[3] + "processed";
-                                    boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
-                                            getApplicationContext(), filePath.split("/")[3]);
+                        public void onSuccess(ResponseBody responseBody) {
+                            String fileName = filePath.split("/")[3] + "processed";
+                            boolean writtenToDisk = DocsHelper.writeResponseBodyToDisk(responseBody,
+                                    getApplicationContext(), filePath.split("/")[3]);
 
-                                    Log.d("Download", "file download was a success? " + writtenToDisk);
-                                    Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
+                            Log.d("Download", "file download was a success? " + writtenToDisk);
+                            Toast.makeText(getApplicationContext(), "File downloaded", Toast.LENGTH_SHORT).show();
 
-                                    //Update the fragment list
-                                    mProcessedVideoFragment.updateFilesList();
-                                    updateDownloadCompleteNotification(fileName);
-                                }
+                            //Update the fragment list
+                            mProcessedVideoFragment.updateFilesList();
+                            updateDownloadCompleteNotification(fileName);
+                        }
 
-                                @Override
-                                public void onError(Throwable throwable) {
-                                    Log.e("Download", "Download error");
-                                    Toast.makeText(getApplicationContext(), "File upload error, try once more", Toast.LENGTH_SHORT).show();
-                                    mDownloadButton.setVisibility(View.VISIBLE);
+                        @Override
+                        public void onError(Throwable throwable) {
+                            Log.e("Download", "Download error");
+                            Toast.makeText(getApplicationContext(), "File upload error, try once more", Toast.LENGTH_SHORT).show();
+                            mDownloadNotificationBuilder
+                                    .setSmallIcon(android.R.drawable.stat_notify_error);
+                            mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
 
-                                    mDownloadNotificationBuilder
-                                            .setSmallIcon(android.R.drawable.stat_notify_error);
-                                    mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
-
-                                }
-                            });
                         }
                     });
                 }
@@ -292,18 +283,18 @@ public class MainActivity extends AppCompatActivity implements
             mVideoService.getProcessingProgress(mVideoId, mServiceCallback);
         }
 
-        private void updateProgressNotification(int max, int progress){
-            mNotificationBuilder.setProgress(max, progress,false);
+        private void updateProgressNotification(int max, int progress) {
+            mNotificationBuilder.setProgress(max, progress, false);
             mNotificationManager.notify(mNotificationId, mNotificationBuilder.build());
         }
 
-        private void updateDownloadCompleteNotification(String filename){
+        private void updateDownloadCompleteNotification(String filename) {
             mDownloadNotificationBuilder.setContentText("File: " + filename)
                     .setSmallIcon(android.R.drawable.stat_sys_download_done);
             mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
         }
 
-        private void updateDownloadStartNofification(String filename){
+        private void updateDownloadStartNofification(String filename) {
             mDownloadNotificationBuilder.setContentText("File download in progress: " + filename)
                     .setSmallIcon(android.R.drawable.stat_sys_download);
             mNotificationManager.notify(mDownloadNotificationId, mDownloadNotificationBuilder.build());
