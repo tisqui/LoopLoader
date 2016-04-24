@@ -62,8 +62,39 @@ public class MainActivity extends AppCompatActivity implements
         fragmentTransaction.add(R.id.processed_videos_list_fragment_container, mProcessedVideoFragment);
         fragmentTransaction.commit();
 
-
         mVideoService = new VideoService();
+
+        //get the received intent
+        Intent receivedIntent = getIntent();
+        //get the action
+        String receivedAction = receivedIntent.getAction();
+        String receivedType = receivedIntent.getType();
+        if(receivedAction.equals(Intent.ACTION_SEND)){
+            //content is being shared
+            if(receivedType.startsWith("video/")){
+                //we got video!
+                //get the uri of the received video
+                Uri receivedUri = (Uri)receivedIntent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if(receivedUri != null){
+                    if (DocsHelper.isNewGooglePhotosUri(receivedUri)) {
+                        Log.d("Shared", " uriPath = " + receivedUri.getPath());
+                        String pathUri = receivedUri.getPath();
+                        String newUri = pathUri.substring(pathUri.indexOf("content"), pathUri.lastIndexOf("/ORIGINAL"));
+                        String realPath = DocsHelper.getDataColumn(this, Uri.parse(newUri), null, null);
+                        Log.d("Shared", " path = " + realPath);
+                        startUploadingFile(realPath);
+                    } else {
+                        //old style uri
+                        startUploadingFile(DocsHelper.getMediaPath(receivedUri, this));
+                    }
+                }
+            } else {
+                Toast.makeText(this, "This application can process only videos :(", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if(receivedAction.equals(Intent.ACTION_MAIN)){
+            //it was not sharing, direct launch
+        }
 
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -89,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-   //Open the video gallery by click on FAB
+    //Open the video gallery by click on FAB
     @OnClick(R.id.fab)
     public void onClick(View view) {
         startActivityForResult(Intent.createChooser(IntentHelper.getVideoIntent(), "Select Video"),
@@ -133,22 +164,41 @@ public class MainActivity extends AppCompatActivity implements
 
                 Log.d("TAG", "file exists? " + exists);
 
-                mVideoService.uploadFile(realPath, new VideoService.FileUploadCallback() {
-                    @Override
-                    public void onSuccess(String fileId) {
-                        new ConvertionProcessing(fileId);
-                    }
+                startUploadingFile(realPath);
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                        Log.d("TAG", "Uploading error: " + throwable.getMessage());
-                        Toast.makeText(getApplicationContext(),
-                                "Uploading error: " + throwable.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+//                mVideoService.uploadFile(realPath, new VideoService.FileUploadCallback() {
+//                    @Override
+//                    public void onSuccess(String fileId) {
+//                        new ConvertionProcessing(fileId);
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable throwable) {
+//                        Log.d("TAG", "Uploading error: " + throwable.getMessage());
+//                        Toast.makeText(getApplicationContext(),
+//                                "Uploading error: " + throwable.getMessage(),
+//                                Toast.LENGTH_SHORT).show();
+//                    }
+//                });
             }
         }
+    }
+
+    private void startUploadingFile(String path){
+        mVideoService.uploadFile(path, new VideoService.FileUploadCallback() {
+            @Override
+            public void onSuccess(String fileId) {
+                new ConvertionProcessing(fileId);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                Log.d("TAG", "Uploading error: " + throwable.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        "Uploading error: " + throwable.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 //    @Override
