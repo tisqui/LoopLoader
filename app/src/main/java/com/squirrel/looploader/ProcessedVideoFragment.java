@@ -3,6 +3,7 @@ package com.squirrel.looploader;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.GridLayoutManager;
@@ -87,7 +88,7 @@ public class ProcessedVideoFragment extends Fragment {
             Log.d(ProcessedVideoFragment.class.getSimpleName(), "Video path: " +
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/"));
             Log.d(ProcessedVideoFragment.class.getSimpleName(), "App folder files list: ");
-            for (String item : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/").list()){
+            for (String item : Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera/").list()) {
                 Log.d(ProcessedVideoFragment.class.getSimpleName(), "File: " + item);
             }
 
@@ -98,8 +99,20 @@ public class ProcessedVideoFragment extends Fragment {
                             //share to instagram on click
                             Intent shareIntent = IntentHelper.getInstagramIntent(item.getFilePath());
                             Log.d("Share ", "Path " + item.getFilePath());
-                            if(shareIntent != null){
+                            if (shareIntent != null) {
                                 startActivity(Intent.createChooser(shareIntent, "Share to "));
+                            }
+                        }
+
+                        @Override
+                        public void onThumbnailClick(VideoFile item) {
+                            //on video sumbnail click - play video
+                            if (item.getFile().exists()) {
+                                Uri fileUri = Uri.fromFile(item.getFile());
+                                Intent viewIntent = IntentHelper.viewVideoIntent(fileUri);
+                                if (viewIntent != null) {
+                                    startActivity(viewIntent);
+                                }
                             }
                         }
                     });
@@ -107,11 +120,10 @@ public class ProcessedVideoFragment extends Fragment {
 
 //            mAdapter.updateFileList(getContext());
 
-            if(mAdapter.getValues().isEmpty()){
+            if (mAdapter.getValues().isEmpty()) {
                 recyclerView.setVisibility(View.GONE);
                 mEmptyView.setVisibility(View.VISIBLE);
-            }
-            else{
+            } else {
                 recyclerView.setVisibility(View.VISIBLE);
                 mEmptyView.setVisibility(View.GONE);
             }
@@ -119,7 +131,6 @@ public class ProcessedVideoFragment extends Fragment {
         }
         return rootView;
     }
-
 
 
     @Override
@@ -139,7 +150,7 @@ public class ProcessedVideoFragment extends Fragment {
         mListener = null;
     }
 
-    public void updateFilesList(){
+    public void updateFilesList() {
         mAdapter.updateFileList(getActivity().getApplicationContext());
     }
 
@@ -148,7 +159,7 @@ public class ProcessedVideoFragment extends Fragment {
     }
 
 
-    public ArrayList<VideoFile> getLocalFolderFilesList(){
+    public ArrayList<VideoFile> getLocalFolderFilesList() {
         ArrayList<VideoFile> videoFiles = new ArrayList<VideoFile>();
 //        if(!DocsHelper.createDirIfNotExists(Environment.DIRECTORY_DCIM+"/Loops/")){
 //            return videoFiles;
@@ -156,9 +167,9 @@ public class ProcessedVideoFragment extends Fragment {
 //        File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Loops/").listFiles();
         File[] listFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Loops/").listFiles();
 
-        if(listFiles != null) {
-            for(File file : listFiles){
-                if(DocsHelper.checkIfVideo(file.getName())){
+        if (listFiles != null) {
+            for (File file : listFiles) {
+                if (DocsHelper.checkIfVideo(file.getName())) {
                     VideoFile item = new VideoFile(file.getPath(), file);
                     videoFiles.add(item);
                 }

@@ -28,6 +28,7 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
 
     public interface OnItemClickListener {
         void onItemClick(VideoFile item);
+        void onThumbnailClick(VideoFile item);
     }
 
     public ArrayList<VideoFile> getValues() {
@@ -128,6 +129,13 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
                 @Override
                 public void onClick(View v) {
                     listener.onItemClick(item);
+                }
+            });
+
+            mImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onThumbnailClick(item);
                 }
             });
         }
