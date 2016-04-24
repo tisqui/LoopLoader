@@ -3,8 +3,16 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+   <ImageView
+       android:layout_width="96dp"
+       android:layout_height="96dp"
+       android:id="@+id/video_thumbnail"
+       android:src="@drawable/default_placeholder"
+       android:scaleType="fitXY"/>
+
     <TextView
         android:id="@+id/id"
+        android:layout_toRightOf="@id/video_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
@@ -21,12 +29,4 @@
         android:text="TEST"
         android:gravity="center_vertical"/>
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_instagram"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_alignTop="@+id/content"
-        android:layout_alignParentEnd="true"/>
 </RelativeLayout>

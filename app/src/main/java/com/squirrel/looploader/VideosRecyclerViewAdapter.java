@@ -1,11 +1,15 @@
 package com.squirrel.looploader;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squirrel.looploader.helpers.DocsHelper;
@@ -59,7 +63,7 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
 //                    mListener.onListFragmentInteraction(holder.mItem);
-                    }
+                }
             }
         });
     }
@@ -93,6 +97,7 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
         public final View mView;
         public final TextView mIdView;
         public final TextView mContentView;
+        public final ImageView mImageView;
         public VideoFile mItem;
 
         public ViewHolder(View view) {
@@ -100,6 +105,7 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
             mView = view;
             mIdView = (TextView) view.findViewById(R.id.id);
             mContentView = (TextView) view.findViewById(R.id.content);
+            mImageView = (ImageView) view.findViewById(R.id.video_thumbnail);
         }
 
         @Override
@@ -109,14 +115,22 @@ public class VideosRecyclerViewAdapter extends RecyclerView.Adapter<VideosRecycl
 
         public void bind(final VideoFile item, final int position, final OnItemClickListener listener) {
             mItem = item;
-            mIdView.setText(String.valueOf(position+1));
+            mIdView.setText(String.valueOf(position + 1));
             mContentView.setText(item.getFileName());
 
+            Bitmap thumb = ThumbnailUtils.createVideoThumbnail(item.getFilePath(), MediaStore.Video.Thumbnails.MICRO_KIND);
+
+            if(thumb != null){
+                mImageView.setImageBitmap(thumb);
+            }
+
             mContentView.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
+                @Override
+                public void onClick(View v) {
                     listener.onItemClick(item);
                 }
             });
         }
     }
+
 }
